@@ -18,7 +18,7 @@ const app = express();
 
 /* ---------------- Security Middleware ---------------- */
 
-//app.use(helmet());
+app.use(helmet());
 
 const allowedOrigins = [
   "http://localhost:3000",
