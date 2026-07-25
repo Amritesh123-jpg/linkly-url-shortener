@@ -150,7 +150,7 @@ class ApiService {
      urls: response.data.urls.map((url: any) => ({
       id: url._id,
       originalUrl: url.originalUrl,
-      shortUrl: `http://localhost:8000/${url.shortCode}`,
+      shortUrl: `${API_BASE_URL}/${url.shortCode}`,
       shortCode: url.shortCode,
       clicks: url.clicks,
       createdAt: url.createdAt,

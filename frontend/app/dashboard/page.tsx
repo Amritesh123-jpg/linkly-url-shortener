@@ -534,7 +534,7 @@ useEffect(() => {
               <div className="mt-4 flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2">
 
                 <code className="truncate text-sm">
-                  http://localhost:8000/{stats.mostClickedUrl?.shortCode}
+                   {`${process.env.NEXT_PUBLIC_API_URL}/${stats.mostClickedUrl?.shortCode}`}
                 </code>
 
                 <Button
@@ -542,7 +542,7 @@ useEffect(() => {
                   variant="outline"
                   onClick={() => {
                     navigator.clipboard.writeText(
-                      `http://localhost:8000/${stats.mostClickedUrl?.shortCode}`
+                      `{process.env.NEXT_PUBLIC_API_URL}/${stats.mostClickedUrl?.shortCode}`
                     );
                     toast.success("Copied!");
                   }}
