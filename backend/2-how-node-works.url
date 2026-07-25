@@ -1,0 +1,424 @@
+backend/
+│
+├── config/
+│   └── db.js
+│
+├── controllers/
+│   ├── authController.js
+│   └── urlController.js
+│
+├── middleware/
+│   ├── authMiddleware.js
+│   ├── errorMiddleware.js
+│   └── asyncHandler.js (optional)
+│
+├── models/
+│   ├── User.js
+│   └── Url.js
+│
+├── routes/
+│   ├── authRoutes.js
+│   └── urlRoutes.js
+│
+├── utils/
+│   ├── generateToken.js
+│   └── generateShortCode.js
+│
+├── .env
+├── package.json
+├── app.js
+└── server.js
+
+<----⬇️⬇️⬇️⬇️------->
+Sabse pehle urlModel.js
+✅ 1. URL Model
+Fields:
+
+originalUrl
+shortCode
+clicks
+user (ObjectId)
+expiresAt (optional)
+createdAt
+updatedAt
+
+✅ 2. urlController.js
+Functions:
+
+createShortUrl
+redirectUrl
+getMyUrls
+deleteUrl
+
+✅ 3. urlRoute.js
+Routes:
+
+POST    /url/shorten
+GET     /url/my-urls
+GET     /url/:shortCode
+DELETE  /url/:id
+
+✅ 4. Short Code Generator
+
+Ek utility function jo unique code generate kare.
+
+Example:
+
+aB8kP2
+Xz92Lm
+kL7nQa
+
+✅ 5. Redirect Logic
+
+Flow:
+
+GET /abc123
+      │
+      ▼
+Find shortCode
+      │
+      ▼
+clicks++
+      │
+      ▼
+Redirect to original URL
+
+Phase 6: Analytics
+✅ 6. Analytics
+
+Per URL:
+
+Total Clicks
+Created At
+Expires At
+
+Final Roadmap
+✔ Auth (Done)
+
+⬇
+
+1. urlModel.js
+2. urlController.js
+3. urlRoute.js
+4. generateShortCode.js
+5. Create Short URL API
+6. Redirect API
+7. Get My URLs API
+8. Delete URL API
+9. Analytics API
+
+⬇
+
+Frontend Integration
+
+Phase 1 (Almost Complete)
+✅ Auth
+✅ URL Shortener
+Phase 2
+⏳ Delete URL
+⏳ Edit Original URL
+⏳ URL Analytics (single URL details)
+⏳ Expiry Date support
+Phase 3
+⏳ Custom Alias (/golu instead of random code)
+⏳ QR Code Generation
+⏳ Pagination
+⏳ Search & Filter
+Phase 4 (Frontend)
+Dashboard
+Login/Register
+Create URL
+My URLs Table
+Analytics Page
+
+
+⏳ Advanced Features
+
+⏳ URL Analytics 👍
+
+⏳ Expiry Date 👍
+
+⏳ Custom Alias 👍
+
+🔲 QR Code Generation 👍
+🔲 Search My URLs 👍
+🔲 Pagination
+🔲 Sort by Clicks / Date👍
+ 
+⭐ Dashboard Statistics 👍
+⭐ Most Clicked URLs 👍
+⭐ Recent URLs 👍
+⭐ Bulk Delete 👍
+⭐ Restore Expired URL
+
+🔜Restore Expired URL 👍
+
+1️⃣ Download QR as PNG ⭐⭐⭐⭐⭐  👍
+
+Time: 20–30 min
+
+User:
+
+GET /url/qr/:id
+
+hit karega aur browser me QR image download ho jayegi.
+
+Ye bahut professional feature hai.
+
+2️⃣ Advanced Analytics ⭐⭐⭐⭐⭐ 👍
+
+Abhi sirf total clicks hain.
+
+Isko improve karte hain:
+
+Today's Clicks
+
+Last 7 Days Clicks
+
+Last 30 Days Clicks
+
+Click History
+
+Most Visited URL
+
+Ye dashboard ko next level bana dega.
+
+3️⃣ Public Analytics ⭐⭐⭐⭐ ->> in feature now no use of this function 
+
+Shareable analytics page.
+
+Example:
+
+/analytics/google
+
+Owner login ki zarurat nahi.
+
+4️⃣ Expiry Duration Customization ⭐⭐⭐⭐ 👍
+
+User choose kare:
+
+5 minutes
+
+1 hour
+
+1 day
+
+7 days
+
+Never Expire
+
+Abhi hardcoded hai.
+
+5️⃣ Duplicate URL Detection ⭐⭐⭐⭐ 👍
+
+Agar same user same URL dubara shorten kare:
+
+Instead of
+
+Create New URL
+
+return
+
+Existing URL
+
+Ye industry me kaafi use hota hai.
+
+6️⃣ URL Tags ⭐⭐⭐ 👍
+
+Example
+
+Learning
+
+College
+
+Work
+
+Personal
+
+Search aur filter aur better ho jayega.
+
+ ( now on the way completed )
+
+✅ Helmet 👍
+✅ Rate Limiting 👍
+✅ Mongo Sanitize👍
+✅ XSS Clean 👍
+✅ ⭐⭐⭐ CORS ⭐⭐⭐ (in frontend when impliementd now pending) very veru important for call from the another origin 
+✅ HPP👍
+✅ Compression👍
+
+1. Dashboard Stats
+2. Recent URLs
+3. Delete URL
+4. Analytics
+
+Phase 1
+Step 1
+
+services/api.ts
+
+Ye file complete rewrite hogi.
+
+Mock APIs hata denge.
+
+Real APIs banayenge.
+
+Phase 2
+
+Login
+
+Phase 3
+
+Signup
+
+Phase 4
+
+JWT
+
+Phase 5
+
+Dashboard
+
+/* now frontend begin */
+1️⃣ React Authentication
+Login
+Signup
+Logout
+JWT Store
+Protected Routes
+2️⃣ Dashboard
+Dashboard Stats
+Recent URLs
+Top URLs
+3️⃣ URL Features
+Create URL
+Edit URL
+Delete URL
+Restore URL
+4️⃣ Analytics
+QR Code
+Clicks
+Remaining Time
+Status
+Search by Tag
+5️⃣ Deployment
+MongoDB Atlas
+Render/Railway
+Environment Variables
+
+
+
+1. Analytics Dashboard ⭐ (Next Major Feature)
+Total URLs
+Total Clicks
+Active URLs
+Expired URLs
+Top Performing URLs
+Charts (Line/Bar)
+
+
+2. Copy URL Improvements
+Copy animation
+"Copied!" feedback
+Better UX
+
+
+3. Dashboard Polish
+Empty State
+Better Skeleton Loader
+Pagination (agar URLs zyada ho)
+Search
+Sort
+Filter
+
+
+4. Responsive Testing
+Mobile
+Tablet
+Large Screens
+
+
+5. Production Ready
+Deployment (Frontend + Backend)
+Environment Variables
+Custom Domain
+README
+Screenshots
+GitHub Repository
+
+////////////////
+🟡 Remaining (Priority Order)
+1. Pagination ⭐⭐⭐⭐⭐
+Backend (page, limit)
+Frontend page buttons
+"Showing 1–10 of 42"
+2. Analytics Page ⭐⭐⭐⭐
+
+Abhi ye mock data par chal rahi hai. Isme:
+
+Total Clicks
+Top URLs
+Charts
+Click trends (agar future me click history store karoge)
+3. URL Details Page ⭐⭐⭐⭐
+
+Click karne par ek URL ki details:
+
+Original URL
+Short URL
+Clicks
+Created
+Expiry
+Last Clicked
+4. QR Code ⭐⭐⭐
+
+Har URL ke liye:
+
+Generate QR
+Download PNG
+5. Custom Alias ⭐⭐⭐
+
+Example:
+
+linkly.com/github
+
+instead of
+
+linkly.com/aB12Xz
+6. Edit URL ⭐⭐⭐
+
+Original URL ya expiry update karna.
+
+7. Bulk Actions ⭐⭐
+Multi-select
+Delete selected
+Restore selected
+8. Dark/Light Theme ⭐⭐
+
+Theme switch.
+
+9. Analytics Improvements ⭐⭐
+
+Agar future me har click ka record store karoge:
+
+Daily graph
+Country
+Browser
+Device
+Deployment (Project Complete Hone Ke Baad)
+Docker
+Nginx
+CI/CD
+AWS / Render / Railway
+Domain
+HTTPS
+
+ORM
+
+
+🔗 Copy URL
+📱 QR Code
+📈 Analytics
+⏰ Expiry
+🗑️ Delete
+♻️ Restore
