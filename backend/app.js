@@ -47,6 +47,12 @@ app.use("/users", userRoute);
 app.use('/auth',authRoute);
 app.use('/url', urlRoute);
 app.get('/:shortCode', urlController.redirectUrl);
+app.get("/", (req, res) => {
+  res.json({
+    status: "success",
+    message: "Linkly Backend is running 🚀"
+  });
+});
 console.log('app.js working');
 
 app.use(globalErrorHandler);
