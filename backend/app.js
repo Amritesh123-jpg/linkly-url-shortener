@@ -18,7 +18,7 @@ const app = express();
 
 /* ---------------- Security Middleware ---------------- */
 
-app.use(helmet());
+//app.use(helmet());
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -26,22 +26,7 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Postman / Mobile Apps
-    if (!origin) return callback(null, true);
-
-    // Allow localhost
-    if (origin === "http://localhost:3000") {
-      return callback(null, true);
-    }
-
-    // Allow all Vercel deployments
-    if (origin.endsWith(".vercel.app")) {
-      return callback(null, true);
-    }
-
-    callback(new Error("Not allowed by CORS"));
-  },
+  origin: true,
   credentials: true,
 };
 
