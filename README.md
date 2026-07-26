@@ -2,6 +2,13 @@
 
 # 🔗 Linkly – Modern URL Shortener
 
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript)
+![Node.js](https://img.shields.io/badge/Node.js-green?logo=node.js)
+![Express.js](https://img.shields.io/badge/Express.js-black?logo=express)
+![MongoDB](https://img.shields.io/badge/MongoDB-green?logo=mongodb)
+![JWT](https://img.shields.io/badge/Auth-JWT-orange)
+
 Production-ready Full Stack URL Shortener built with **Next.js**, **Node.js**, **Express.js**, and **MongoDB Atlas**.
 
 Create short links, track analytics, generate QR codes, and manage URLs from a modern dashboard.
