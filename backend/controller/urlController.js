@@ -177,17 +177,23 @@ exports.createShortUrl = catchAsync(async (req, res, next) => {
 exports.redirectUrl = catchAsync(async (req, res, next) => {
   const { shortCode } = req.params;
 
-  const url = await Url.findOne({ shortCode ,isDeleted: false });
-
-console.log("===== REDIRECT =====");
-console.log("ShortCode:", shortCode);
-console.log("ExpiresAt:", url.expiresAt);
-console.log("Current:", new Date());
-console.log("Expired:", url.expiresAt < new Date());
+  const url = await Url.findOne({
+    shortCode,
+    isDeleted: false,
+  });
 
   if (!url) {
     return next(new AppError("URL not found", 404));
   }
+
+  console.log("===== REDIRECT =====");
+  console.log("ShortCode:", shortCode);
+  console.log("ExpiresAt:", url.expiresAt);
+  console.log("Current:", new Date());
+  console.log(
+    "Expired:",
+    url.expiresAt ? url.expiresAt < new Date() : false
+  );
 
   if (url.expiresAt && url.expiresAt < new Date()) {
     return next(new AppError("This URL has expired", 410));
@@ -200,9 +206,9 @@ console.log("Expired:", url.expiresAt < new Date());
     clickedAt: new Date(),
   });
 
-await url.save();
+  await url.save();
 
-  res.redirect(url.originalUrl);
+  return res.redirect(url.originalUrl);
 });
 
 // Get My URLs
