@@ -41,7 +41,7 @@ exports.signUp = catchAsync(async (req, res,next) => {
     });
     
     createSendToken(user,201,res);
-    
+    next();
   })
   
 
