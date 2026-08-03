@@ -80,7 +80,7 @@ export function UrlShortenerForm() {
   }
 
   return (
-    <div className="w-full max-w-2xl">
+    <div className="w-full ">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
           <Link2 className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -94,7 +94,7 @@ export function UrlShortenerForm() {
           />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             type="text"
             placeholder="Custom alias (optional)"
@@ -112,43 +112,40 @@ export function UrlShortenerForm() {
             disabled={isLoading}
             className="h-12"
           />
-        <div className="w-full">
-          <Select
-            value={expiry}
-            onValueChange={setExpiry}
-            disabled={isLoading}
-          >
-            <SelectTrigger className="h-12 w-full">
-              <SelectValue placeholder="Select expiry" />
-            </SelectTrigger>
+          <div className="min-w-0">
+            <Select value={expiry} onValueChange={setExpiry} disabled={isLoading}>
+              <SelectTrigger className="h-12">
+                <SelectValue />
+              </SelectTrigger>
 
-            <SelectContent>
-              <SelectItem value="5m">5 Minutes</SelectItem>
-              <SelectItem value="10m">10 Minutes</SelectItem>
-              <SelectItem value="30m">30 Minutes</SelectItem>
-              <SelectItem value="1h">1 Hour</SelectItem>
-              <SelectItem value="1d">1 Day</SelectItem>
-              <SelectItem value="7d">7 Days</SelectItem>
-              <SelectItem value="30d">30 Days</SelectItem>
-              <SelectItem value="never">Never Expire</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-          <Button
-            type="submit"
-            size="lg"
-            className="h-12"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Spinner className="mr-2" />
-                Shortening...
-              </>
-            ) : (
-              "Shorten URL"
-            )}
-          </Button>
+              <SelectContent>
+                <SelectItem value="5m">5 Minutes</SelectItem>
+                <SelectItem value="10m">10 Minutes</SelectItem>
+                <SelectItem value="30m">30 Minutes</SelectItem>
+                <SelectItem value="1h">1 Hour</SelectItem>
+                <SelectItem value="1d">1 Day</SelectItem>
+                <SelectItem value="7d">7 Days</SelectItem>
+                <SelectItem value="30d">30 Days</SelectItem>
+                <SelectItem value="never">Never Expire</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-0">
+            <Button
+              type="submit"
+              className="h-12 w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Spinner className="mr-2" />
+                  Shortening...
+                </>
+              ) : (
+                "Shorten URL"
+              )}
+            </Button>
+          </div>
         </div>
       </form>
 
