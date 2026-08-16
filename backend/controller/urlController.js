@@ -1,8 +1,12 @@
+const { updateDashboardCache } = require("../utils/dashboardCache");
+const { updateAnalyticsCache } = require("../utils/analyticsCache");
+const redis = require('../config/redis');
 const ogs = require("open-graph-scraper");
 const Url = require("../model/urlModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const QRCode = require("qrcode");
+
 // Create Short URL
 exports.createShortUrl = catchAsync(async (req, res, next) => {
   console.log(req.body);
@@ -155,6 +159,9 @@ exports.createShortUrl = catchAsync(async (req, res, next) => {
     favicon
   });
 
+  await updateDashboardCache(req.user.id);
+  await updateAnalyticsCache(req.user.id);
+
   console.log("Created URL:", newUrl);
   console.log("Title:", newUrl.title);
   console.log("Favicon:", newUrl.favicon);
@@ -176,6 +183,19 @@ exports.createShortUrl = catchAsync(async (req, res, next) => {
 // Redirect URL
 exports.redirectUrl = catchAsync(async (req, res, next) => {
   const { shortCode } = req.params;
+  const cacheKey = `redirect:${shortCode}`;
+
+    const cachedUrl = await redis.get(cacheKey);
+
+    if (cachedUrl) {
+      console.log("✅ Redirect Cache HIT");
+
+      const url = JSON.parse(cachedUrl);
+
+      return res.redirect(url.originalUrl);
+    }
+
+console.log("❌ Redirect Cache MISS");
 
   const url = await Url.findOne({
     shortCode,
@@ -207,6 +227,16 @@ exports.redirectUrl = catchAsync(async (req, res, next) => {
   });
 
   await url.save();
+    await redis.set(
+    cacheKey,
+    JSON.stringify({
+      originalUrl: url.originalUrl,
+    }),
+    "EX",
+    3600
+  );
+
+  console.log("✅ Redirect Cache Stored");
 
   return res.redirect(url.originalUrl);
 });
@@ -320,8 +350,8 @@ exports.deleteUrl = catchAsync(async (req, res, next) => {
     url.isDeleted = true;
     url.deletedAt = new Date();
     await url.save();
-
-  
+    await updateDashboardCache(req.user.id);
+    await updateAnalyticsCache(req.user.id);
 
   res.status(200).json({
     status: "success",
@@ -373,6 +403,11 @@ exports.updateUrl = catchAsync(async (req, res, next) => {
   }
 
   await url.save();
+  await redis.del(`redirect:${url.shortCode}`);
+  await updateDashboardCache(req.user.id);
+  await updateAnalyticsCache(req.user.id);
+
+  console.log("🗑️ Redirect Cache Invalidated");
 
   res.status(200).json({
     status: "success",
@@ -468,6 +503,21 @@ exports.getUrlAnalytics = catchAsync(async (req, res, next) => {
 
 
 exports.getDashboardStats = catchAsync(async (req, res, next) => {
+  const cacheKey = `dashboard:${req.user.id}`;
+
+    const cachedData = await redis.get(cacheKey);
+
+    if (cachedData) {
+      console.log("✅ Dashboard Cache HIT");
+
+      return res.status(200).json({
+        status: "success",
+        data: JSON.parse(cachedData),
+        source: "redis",
+      });
+    }
+
+    console.log("❌ Dashboard Cache MISS");
 
   // Total URLs
   const totalUrls = await Url.countDocuments({
@@ -517,16 +567,26 @@ exports.getDashboardStats = catchAsync(async (req, res, next) => {
     user: req.user.id,
     isDeleted: false,
   }).sort("-clicks");
+   
+  const dashboardData = {
+  totalUrls,
+  totalClicks: totalClicks[0]?.totalClicks || 0,
+  activeUrls,
+  expiredUrls,
+  mostClickedUrl,
+    };
+
+    await redis.set(
+      cacheKey,
+      JSON.stringify(dashboardData),
+      "EX",
+      300
+    );
 
   res.status(200).json({
-    status: "success",
-    data: {
-      totalUrls,
-      totalClicks: totalClicks[0]?.totalClicks || 0,
-      activeUrls,
-      expiredUrls,
-      mostClickedUrl,
-    },
+  status: "success",
+  data: dashboardData,
+  source: "mongodb",
   });
 
 });
@@ -577,6 +637,8 @@ exports.deleteManyUrls = catchAsync(async (req, res, next) => {
     _id: { $in: ids },
     user: req.user.id,
   });
+  await updateDashboardCache(req.user.id);
+  await updateAnalyticsCache(req.user.id);
   console.log(result);
 
   res.status(200).json({
@@ -643,7 +705,8 @@ if (!allowedDurations.includes(duration)) {
 
   
   await url.save();
-
+  await updateDashboardCache(req.user.id);
+  await updateAnalyticsCache(req.user.id);
 // console.log("Restored URL:");
 // console.log(url);
 
@@ -684,6 +747,21 @@ exports.generateQRCode = catchAsync(async (req, res, next) => {
 exports.getDashboardAnalytics = catchAsync(async (req, res, next) => {
   console.log("Logged in user:", req.user.id);
   //const urls = await Url.find();
+  const cacheKey = `analytics:${req.user.id}`;
+
+const cachedData = await redis.get(cacheKey);
+
+if (cachedData) {
+  console.log("✅ Analytics Cache HIT");
+
+  return res.status(200).json({
+    status: "success",
+    data: JSON.parse(cachedData),
+    source: "redis",
+  });
+}
+
+console.log("❌ Analytics Cache MISS");
 
 
   const urls = await Url.find({
@@ -754,18 +832,27 @@ exports.getDashboardAnalytics = catchAsync(async (req, res, next) => {
   const expiredUrls = urls.filter(
   (url) => url.expiresAt && url.expiresAt <= now
    ).length;
+   const analyticsData = {
+  totalUrls,
+  totalClicks,
+  activeUrls,
+  expiredUrls,
+  averageClicks,
+  topUrls,
+  clicksOverTime,
+};
+
+await redis.set(
+  cacheKey,
+  JSON.stringify(analyticsData),
+  "EX",
+  300
+);
 
     res.status(200).json({
     status: "success",
-        data: {
-      totalUrls,
-      totalClicks,
-      activeUrls,
-      expiredUrls,
-      averageClicks,
-      topUrls,
-      clicksOverTime,
-    },
+      data: analyticsData,
+      source: "mongodb",
   });
 
 });

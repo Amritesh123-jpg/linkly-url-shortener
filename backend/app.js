@@ -6,6 +6,7 @@ const mongoSanitize = require("./middlewares/mongoSanitize");
 const { xss } = require("express-xss-sanitizer");
 const hpp = require("hpp");
 const compression = require("compression");
+const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 const globalErrorHandler = require("./controller/errorController");
@@ -26,7 +27,7 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  origin: true,
+  origin: allowedOrigins,
   credentials: true,
 };
 
@@ -36,6 +37,7 @@ app.use(cors(corsOptions));
 app.use(limiter);
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(mongoSanitize);
 

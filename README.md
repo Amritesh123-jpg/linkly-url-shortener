@@ -2,16 +2,17 @@
 
 # 🔗 Linkly – Modern URL Shortener
 
-![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript)
 ![Node.js](https://img.shields.io/badge/Node.js-green?logo=node.js)
 ![Express.js](https://img.shields.io/badge/Express.js-black?logo=express)
 ![MongoDB](https://img.shields.io/badge/MongoDB-green?logo=mongodb)
+![Redis](https://img.shields.io/badge/Redis-red?logo=redis)
 ![JWT](https://img.shields.io/badge/Auth-JWT-orange)
 
-Production-ready Full Stack URL Shortener built with **Next.js**, **Node.js**, **Express.js**, and **MongoDB Atlas**.
+Production-ready Full Stack URL Shortener built with **Next.js**, **Node.js**, **Express.js**, **MongoDB Atlas**, and **Redis**.
 
-Create short links, track analytics, generate QR codes, and manage URLs from a modern dashboard.
+Create short links, track analytics, generate QR codes, and manage URLs from a modern dashboard with secure JWT authentication and automatic token refresh.
 
 ### 🌐 Live Demo
 
@@ -51,228 +52,97 @@ Create short links, track analytics, generate QR codes, and manage URLs from a m
 
 # ✨ Features
 
-### Authentication
+## Authentication
 
 - JWT Authentication
+- Access Token + Refresh Token
 - Secure Signup/Login
 - Protected Routes
+- HttpOnly Refresh Token Cookie
+- Refresh Token Storage using Redis
+- Automatic Access Token Refresh
+- Concurrent Refresh Request Handling
 - Logout
+- Role-based Authorization
 
-### URL Management
+## URL Management
 
 - Create Short URLs
 - Custom Alias
 - Expiry Support
 - Permanent Links
 - Delete URLs
-- Restore Deleted URLs
+- Restore Expired URLs
 - Search & Filter
 - Tag Support
+- Pagination
+- Click Tracking
 
-### Analytics
+## Analytics
 
 - Total URLs
 - Total Clicks
 - Active URLs
 - Expired URLs
+- Average Clicks per URL
 - Most Clicked URL
 - Click History
 - Clicks Over Time
+- Top Performing URLs
 
-### Additional Features
+## Additional Features
 
 - QR Code Generation
-- Automatic Website Title
+- Automatic Website Title Detection
 - Automatic Favicon Detection
 - Open Graph Metadata
 - URL Validation
+- Responsive Dashboard
 
 ---
 
 # 🔒 Security
+
+Linkly implements multiple layers of security to protect APIs, authentication, and user data.
 
 - Helmet
 - Rate Limiter
 - MongoDB Sanitization
 - XSS Protection
 - HPP
+- CORS
 - Compression
 - JWT Authentication
+- HttpOnly Refresh Token Cookie
+- Redis-backed Refresh Token Validation
+- Password Hashing using bcrypt
+- Protected API Routes
+- Role-based Authorization
 
 ---
 
-# 🛠 Tech Stack
+# ⚡ Authentication Flow
 
-## Frontend
-
-- Next.js 16
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Lucide React
-
-## Backend
-
-- Node.js
-- Express.js 5
-- MongoDB Atlas
-- Mongoose
-- JWT
-- Open Graph Scraper
-
-## Deployment
-
-- Vercel
-- Render
-- MongoDB Atlas
-
----
-
-# 📂 Folder Structure
+Linkly uses a **JWT Access Token + Refresh Token** authentication architecture.
 
 ```text
-Linkly
-│
-├── frontend
-│
-│── app
-│── components
-│── services
-│── hooks
-│── context
-│
-└── backend
-│── controller
-│── middleware
-│── model
-│── routes
-│── utils
-│── server.js
+                    Login / Signup
+                          │
+                          ▼
+                  Express Backend
+                          │
+             ┌────────────┴────────────┐
+             ▼                         ▼
+       Access Token              Refresh Token
+             │                         │
+             │                  HttpOnly Cookie
+             │                         │
+             │                         ▼
+             │                    Redis (Upstash)
+             │
+             ▼
+       Frontend Session
+             │
+             ▼
+       Protected APIs
 ```
-
----
-
-# 🚀 Installation
-
-Clone Repository
-
-```bash
-git clone https://github.com/Amritesh123-jpg/linkly-url-shortener.git
-```
-
-Backend
-
-```bash
-cd backend
-npm install
-npm start
-```
-
-Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
----
-
-# ⚙ Environment Variables
-
-Backend
-
-```env
-DATABASE=
-DATABASE_PASSWORD=
-JWT_SECRET=
-JWT_EXPIRES_IN=
-PORT=
-```
-
-Frontend
-
-```env
-NEXT_PUBLIC_API_URL=
-```
-
----
-
-# 📡 API Routes
-
-Authentication
-
-```http
-POST /auth/signup
-POST /auth/login
-```
-
-URL
-
-```http
-POST /url/shorten
-GET /url/dashboard
-DELETE /url/:id
-PATCH /url/restore/:id
-GET /:shortCode
-```
-
----
-
-# 🏗 Architecture
-
-```text
-                User
-                  │
-                  ▼
-      Next.js Frontend (Vercel)
-                  │
-            REST API
-                  │
-                  ▼
-      Express.js Backend (Render)
-                  │
-                  ▼
-          MongoDB Atlas Database
-```
-
----
-
-# 📈 Highlights
-
-- Full Stack Application
-- Production Deployment
-- Mobile Responsive
-- Secure Authentication
-- Analytics Dashboard
-- Clean UI
-- REST API
-- JWT Security
-- URL Analytics
-- QR Code Support
-
----
-
-# 🔮 Future Improvements
-
-- Redis Cache
-- Docker
-- Custom Domain
-- Team Collaboration
-- Email Verification
-- CI/CD
-- Unit Testing
-
----
-
-# 👨‍💻 Author
-
-**Amritesh Raj**
-
-GitHub
-
-https://github.com/Amritesh123-jpg
-
----
-
-## ⭐ If you found this project useful, consider giving it a star!

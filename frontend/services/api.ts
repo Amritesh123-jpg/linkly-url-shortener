@@ -55,6 +55,7 @@ interface PaginatedUrls {
 
 class ApiService {
   private token: string | null = null
+  private refreshPromise: Promise<string> | null = null
 
   setToken(token: string | null) {
   this.token = token;
@@ -82,15 +83,46 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
+      credentials: "include",
     });
 
     console.log("Status:", response.status);
+    console.log("Response OK:", response.ok);
+    console.log("Response Status:", response.status);
     console.log("URL:", `${API_BASE_URL}${endpoint}`);
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}))
-      throw new Error(error.message || "Something went wrong")
+    if (response.status === 401 && endpoint !== "/auth/refresh-token") {
+  try {
+    const newAccessToken = await this.refreshAccessToken();
+
+    const retryHeaders: HeadersInit = {
+      ...headers,
+      Authorization: `Bearer ${newAccessToken}`,
+    };
+
+    const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: retryHeaders,
+      credentials: "include",
+    });
+
+    if (!retryResponse.ok) {
+      const error = await retryResponse.json().catch(() => ({}));
+      throw new Error(error.message || "Something went wrong");
     }
+
+    return retryResponse.json();
+  } catch (err) {
+    sessionStorage.removeItem("token");
+    this.token = null;
+    throw err;
+  }
+}
+
+if (!response.ok) {
+  const error = await response.json().catch(() => ({}));
+  throw new Error(error.message || "Something went wrong");
+}
     console.log("Authorization Token🔜:", token);
     return response.json()
   }
@@ -293,6 +325,52 @@ async getProfile() {
    async getTags() {
   return this.request<{ tags: string[] }>("/url/tags");
    }
+
+  private async refreshAccessToken(): Promise<string> {
+
+  if (this.refreshPromise) {
+    return this.refreshPromise;
+  }
+
+  this.refreshPromise = (async () => {
+
+    console.log("Refreshing access token...");
+
+    const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    console.log("Refresh response status:", response.status);
+
+    if (!response.ok) {
+      throw new Error("Session expired");
+    }
+
+    const data = await response.json();
+
+    console.log("New access token received:", data.accessToken);
+
+    sessionStorage.setItem("token", data.accessToken);
+
+    this.token = data.accessToken;
+
+    return data.accessToken;
+
+  })();
+
+  try {
+    return await this.refreshPromise;
+  } finally {
+    this.refreshPromise = null;
+  }
+}
+
+async logout() {
+  return this.request<any>("/auth/logout", {
+    method: "POST",
+  });
+}
 /*-----------------------------------------------*/
 }
 

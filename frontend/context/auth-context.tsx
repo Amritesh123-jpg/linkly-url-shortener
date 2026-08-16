@@ -17,6 +17,7 @@ interface AuthContextType {
   logout: () => void
   isAuthenticated: boolean
   updateUser: (user: User) => void
+  refreshSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -25,39 +26,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const refreshSession = useCallback(async () => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/refresh-token`,
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
 
-  useEffect(() => {
-  const storedToken =
-    typeof window !== "undefined"
-      ? sessionStorage.getItem("token")
-      : null;
+    if (!response.ok) {
+      return;
+    }
 
-  const storedUser =
-    typeof window !== "undefined"
-      ? sessionStorage.getItem("user")
-      : null;
+    const data = await response.json();
 
-  console.log("Stored Token:", storedToken);
-  console.log("Stored User:", storedUser);
+    const newToken = data.accessToken;
 
-  if (storedToken && storedUser) {
-    const user = JSON.parse(storedUser);
+    if (!newToken) {
+      return;
+    }
 
-    setToken(storedToken);
+    const profileResponse = await apiService.getProfile();
+    const user = profileResponse;
+
+    setToken(newToken);
     setUser(user);
 
-    apiService.setToken(storedToken);
-  }
+    apiService.setToken(newToken);
 
-  setIsLoading(false);
+    sessionStorage.setItem("token", newToken);
+    sessionStorage.setItem("user", JSON.stringify(user));
+  } catch (error) {
+    console.log("Session restore failed");
+  }
 }, []);
+
+  useEffect(() => {
+  const restoreSession = async () => {
+    const storedToken = sessionStorage.getItem("token");
+    const storedUser = sessionStorage.getItem("user");
+
+    if (storedToken && storedUser) {
+      const user = JSON.parse(storedUser);
+
+      setToken(storedToken);
+      setUser(user);
+      apiService.setToken(storedToken);
+
+      setIsLoading(false);
+      return;
+    }
+
+    await refreshSession();
+    setIsLoading(false);
+  };
+
+  restoreSession();
+}, [refreshSession]);
 
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true)
     try {
     const response = await apiService.login(email, password);
 
-    const token = response.token;
+    const token = response.accessToken;
     const user = response.data.user;
 
     setUser(user);
@@ -110,12 +144,18 @@ const updateUser = useCallback((user: User) => {
   sessionStorage.setItem("user", JSON.stringify(user));
 }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+  try {
+    await apiService.logout()
+  } catch (err) {
+    console.error("Logout failed:", err)
+  } finally {
     setUser(null)
     setToken(null)
     sessionStorage.removeItem("token")
     sessionStorage.removeItem("user")
-  }, [])
+  }
+}, [])
 
   return (
     <AuthContext.Provider
@@ -127,6 +167,7 @@ const updateUser = useCallback((user: User) => {
         signup,
         logout,
         updateUser,
+        refreshSession,
         isAuthenticated: !!user && !!token,
       }}
     >
