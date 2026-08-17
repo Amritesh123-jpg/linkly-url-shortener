@@ -28,11 +28,11 @@ const createSendToken = async (user, statusCode, res) => {
 
   // HttpOnly Cookie
   res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: false, // true in production (HTTPS)
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
 
   user.password = undefined;
   user.active = undefined;
@@ -106,7 +106,7 @@ exports.signUp = catchAsync(async (req, res,next) => {
 
 
 exports.login = catchAsync(async (req,res,next)=>{
-  console.log(req.body);
+  console.log(`Login attempt: ${req.body.email}`);
   let email = req.body.email;
   const password = req.body.password;
 
@@ -215,10 +215,10 @@ exports.logout = catchAsync(async (req, res, next) => {
   }
 
   res.clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-  });
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+});
 
   res.status(200).json({
     status: "success",
