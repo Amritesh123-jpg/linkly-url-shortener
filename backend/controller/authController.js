@@ -61,7 +61,13 @@ exports.refreshToken = catchAsync(async (req, res, next) => {
   );
 
   // 3. Check Redis
-  const storedToken = await redis.get(`refresh:${decoded.id}`);
+  const start = performance.now();
+
+const storedToken = await redis.get(`refresh:${decoded.id}`);
+
+const end = performance.now();
+
+console.log(`Redis GET: ${(end - start).toFixed(2)} ms`);
 
   if (!storedToken || storedToken !== refreshToken) {
     return next(new AppError("Invalid refresh token", 401));

@@ -9,7 +9,7 @@ const QRCode = require("qrcode");
 
 // Create Short URL
 exports.createShortUrl = catchAsync(async (req, res, next) => {
-  console.log(req.body);
+  console.log(`Fetched ${urls.length} URLs`);
   const {  customAlias, expiry="30d" } = req.body;
 
   let originalUrl = req.body.originalUrl.trim();
@@ -29,7 +29,7 @@ exports.createShortUrl = catchAsync(async (req, res, next) => {
     return next(new AppError("Tag can only contain letters, numbers, spaces, hyphens, and underscores", 400));
   }
 
-  console.log("Normalized URL:", originalUrl);
+  //console.log("Normalized URL:", originalUrl);
 
   // Validate URL
   try {
@@ -505,7 +505,13 @@ exports.getUrlAnalytics = catchAsync(async (req, res, next) => {
 exports.getDashboardStats = catchAsync(async (req, res, next) => {
   const cacheKey = `dashboard:${req.user.id}`;
 
-    const cachedData = await redis.get(cacheKey);
+    const start = performance.now();
+
+const cachedData = await redis.get(cacheKey);
+
+const end = performance.now();
+
+console.log(`Dashboard Redis GET: ${(end - start).toFixed(2)} ms`);
 
     if (cachedData) {
       console.log("✅ Dashboard Cache HIT");
@@ -745,11 +751,17 @@ exports.generateQRCode = catchAsync(async (req, res, next) => {
 });
 
 exports.getDashboardAnalytics = catchAsync(async (req, res, next) => {
-  console.log("Logged in user:", req.user.id);
+ // console.log("Logged in user:", req.user.id);
   //const urls = await Url.find();
   const cacheKey = `analytics:${req.user.id}`;
 
+const start = performance.now();
+
 const cachedData = await redis.get(cacheKey);
+
+const end = performance.now();
+
+console.log(`Analytics Redis GET: ${(end - start).toFixed(2)} ms`);
 
 if (cachedData) {
   console.log("✅ Analytics Cache HIT");
@@ -768,7 +780,7 @@ console.log("❌ Analytics Cache MISS");
   user: req.user.id,
   isDeleted: false
   });
-  console.log(urls);
+  // console.log(urls);
   const totalUrls = urls.length;
   const totalClicks = urls.reduce(
   (sum, url) => sum + url.clicks,
