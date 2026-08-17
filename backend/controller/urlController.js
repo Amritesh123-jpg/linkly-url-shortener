@@ -9,7 +9,7 @@ const QRCode = require("qrcode");
 
 // Create Short URL
 exports.createShortUrl = catchAsync(async (req, res, next) => {
-  console.log(`Fetched ${urls.length} URLs`);
+  
   const {  customAlias, expiry="30d" } = req.body;
 
   let originalUrl = req.body.originalUrl.trim();
