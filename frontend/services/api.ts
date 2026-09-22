@@ -301,7 +301,7 @@ async createText(
     id: response.data.text._id,
     content: response.data.text.content,
     shortCode: response.data.text.shortCode,
-    shareUrl: `${window.location.origin}/text/${response.data.text.shortCode}`,
+    shareUrl: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/text/${response.data.text.shortCode}`,
     createdAt: response.data.text.createdAt,
     expiresAt: response.data.text.expiresAt,
     
