@@ -128,41 +128,53 @@ exports.updateMe = async (req, res) => {
 };
 
 exports.updatePassword = async (req, res) => {
-   console.log("➡ updatePassword called");
-  try {
-    const { currentPassword, newPassword, passwordConfirm } = req.body;
+  console.log("➡ updatePassword called");
 
-    // 1️⃣ Get user with password
+  try {
+    const {
+      currentPassword,
+      newPassword,
+      passwordConfirm,
+    } = req.body;
+
+    // 1. Get user with password
     const user = await User.findById(req.user.id).select("+password");
 
-    // 2️⃣ Check current password
-    if (!(await bcrypt.compare(currentPassword, user.password))) {
-      return res.status(401).json({
+    if (!user) {
+      return res.status(404).json({
         status: "fail",
-        message: "Current password is incorrect"
+        message: "User not found",
       });
     }
 
-    // 3️⃣ Set new password
+    // 2. Check current password
+    if (!(await bcrypt.compare(currentPassword, user.password))) {
+      return res.status(401).json({
+        status: "fail",
+        message: "Current password is incorrect",
+      });
+    }
+
+    // 3. Set new password
     user.password = newPassword;
     user.passwordConfirm = passwordConfirm;
 
-    await user.save(); // pre-save middleware hash karega
+    // pre-save middleware password ko hash karega
+    await user.save();
 
-    // 4️⃣ New JWT
-    const token = signToken(user._id, user.role);
-
+    // 4. Success response
     res.status(200).json({
       status: "success",
-      token
+      message: "Password updated successfully",
     });
 
   } catch (err) {
-    console.error(err);          // <-- ye add karo
-    console.error(err.stack);    // <-- ye bhi add karo
+    console.error("Update password error:", err);
+    console.error(err.stack);
+
     res.status(500).json({
       status: "error",
-      message: err.message
+      message: err.message,
     });
   }
 };

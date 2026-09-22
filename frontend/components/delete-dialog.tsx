@@ -15,6 +15,7 @@ interface DeleteDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   isLoading?: boolean;
+  type?: "URL" | "Text";
 }
 
 export function DeleteDialog({
@@ -22,17 +23,20 @@ export function DeleteDialog({
   onOpenChange,
   onConfirm,
   isLoading = false,
+  type = "URL",
 }: DeleteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Delete URL</DialogTitle>
+          <DialogTitle>Delete {type}</DialogTitle>
 
           <DialogDescription>
-            Are you sure you want to delete this URL?
+            Are you sure you want to delete this {type.toLowerCase()}?
             <br />
-            You can restore it later.
+            {type === "Text"
+              ? "This action cannot be undone."
+              : "You can restore it later."}
           </DialogDescription>
         </DialogHeader>
 

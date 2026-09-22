@@ -1,4 +1,5 @@
 "use client"
+import { UrlNavbar } from "@/components/url-navbar"
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { useEffect, useState, useCallback } from "react"
@@ -11,7 +12,7 @@ import { TableSkeleton, CardSkeleton } from "@/components/skeleton-loader"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { apiService, type ShortenedUrl, type DashboardStats } from "@/services/api"
-import { RestoreDialog } from "@/components/restore-dialog"
+import { UrlRestoreDialog } from "@/components/url-restore-dialog";
 import { DeleteDialog } from "@/components/delete-dialog";
 import { SearchX } from "lucide-react";
 import {
@@ -44,7 +45,9 @@ function DashboardContent() {
   });
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState<"all" | "active" | "expired">("all");
+const [filter, setFilter] = useState<
+  "all" | "active" | "expired" | "deleted"
+>("all");
   const [sortBy, setSortBy] = useState<"latest" | "oldest" | "clicks">("latest");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -176,7 +179,7 @@ useEffect(() => {
   return (
     <div className="min-h-screen">
       <Header />
-    
+      <UrlNavbar />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -386,13 +389,16 @@ useEffect(() => {
               <select
                 value={filter}
                 onChange={(e) =>
-                  setFilter(e.target.value as "all" | "active" | "expired")
+                  setFilter(
+                    e.target.value as "all" | "active" | "expired" | "deleted"
+                  )
                 }
                 className="h-10 rounded-md border border-input bg-background px-3 text-sm"
               >
                 <option value="all">All</option>
                 <option value="active">Active</option>
                 <option value="expired">Expired</option>
+                <option value="deleted">Deleted</option>
               </select>
               <TagFilter
                 tags={tags}
@@ -448,6 +454,7 @@ useEffect(() => {
                   variant="outline"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((prev) => prev - 1)}
+                  className="cursor-pointer hover:bg-white/10 hover:text-white active:scale-95"
                 >
                   Previous
                 </Button>
@@ -460,6 +467,7 @@ useEffect(() => {
                   variant="outline"
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((prev) => prev + 1)}
+                  className="cursor-pointer hover:bg-white/10 hover:text-white active:scale-95"
                 >
                   Next
                 </Button>
@@ -565,7 +573,7 @@ useEffect(() => {
         </DialogContent>
       </Dialog>
 
-      <RestoreDialog
+      <UrlRestoreDialog
         open={restoreOpen}
         onOpenChange={setRestoreOpen}
         isLoading={isRestoring}
@@ -584,7 +592,13 @@ useEffect(() => {
               fetchDashboardStats(),
             ]);
           } catch (error) {
-            toast.error("Failed to restore URL");
+             console.error("Restore URL error:", error);
+
+                toast.error(
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to restore URL"
+                );
           } finally{
             setIsRestoring(false);
           }

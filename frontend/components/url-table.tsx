@@ -230,12 +230,15 @@ export function UrlTable({ urls, onDelete,onRestore ,isDeleting }: UrlTableProps
                           Show QR Code
                         </DropdownMenuItem>
 
-                        <DropdownMenuItem
-                          onClick={() => onRestore(url.id)}
-                        >
-                          <RotateCcw className="mr-2 h-4 w-4 text-muted-foreground" />
-                          Restore
-                        </DropdownMenuItem>
+                        {url.expiresAt &&
+                          new Date(url.expiresAt) <= new Date() && (
+                            <DropdownMenuItem
+                              onClick={() => onRestore(url.id)}
+                            >
+                              <RotateCcw className="mr-2 h-4 w-4" />
+                              Restore
+                            </DropdownMenuItem>
+                          )}
 
                         <DropdownMenuItem
                           onClick={() => onDelete(url.id)}

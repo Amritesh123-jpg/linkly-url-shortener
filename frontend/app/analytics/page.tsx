@@ -1,5 +1,5 @@
 "use client"
-
+import { UrlNavbar } from "@/components/url-navbar"
 import { useEffect, useState, useCallback } from "react"
 import {
   MousePointerClick,
@@ -49,7 +49,7 @@ function AnalyticsContent() {
   return (
     <div className="min-h-screen">
       <Header />
-
+      <UrlNavbar />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>

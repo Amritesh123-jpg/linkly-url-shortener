@@ -13,6 +13,23 @@ interface ShortenedUrl {
   favicon?: string
 }
 
+interface SharedText {
+  id: string
+  content: string
+  shortCode: string
+  shareUrl: string
+  createdAt: string
+  expiresAt: string | null
+  
+}
+
+interface PaginatedTexts {
+  texts: SharedText[]
+  currentPage: number
+  totalPages: number
+  totalTexts: number
+}
+
 interface AnalyticsData {
   totalClicks: number;
   totalUrls: number;
@@ -266,6 +283,107 @@ getQrCode(id: string) {
   });
 };
 
+// Text Sharing
+
+async createText(
+  content: string,
+  expiry: string = "30d"
+): Promise<SharedText> {
+  const response = await this.request<any>("/text/create", {
+    method: "POST",
+    body: JSON.stringify({
+      content,
+      expiry,
+    }),
+  });
+
+  return {
+    id: response.data.text._id,
+    content: response.data.text.content,
+    shortCode: response.data.text.shortCode,
+    shareUrl: `${window.location.origin}/text/${response.data.text.shortCode}`,
+    createdAt: response.data.text.createdAt,
+    expiresAt: response.data.text.expiresAt,
+    
+  };
+}
+
+async getMyTexts(
+  page = 1,
+  limit = 5
+): Promise<PaginatedTexts> {
+  const response = await this.request<any>(
+    `/text/myTexts?page=${page}&limit=${limit}`
+  );
+
+  return {
+    texts: response.data.texts.map((text: any) => ({
+      id: text._id,
+      content: text.content,
+      shortCode: text.shortCode,
+      shareUrl: `${window.location.origin}/text/${text.shortCode}`,
+      createdAt: text.createdAt,
+      expiresAt: text.expiresAt,
+      
+    })),
+
+    currentPage: response.currentPage,
+    totalPages: response.totalPages,
+    totalTexts: response.totalTexts,
+  };
+}
+
+async deleteText(id: string): Promise<void> {
+  await this.request(`/text/${id}`, {
+    method: "DELETE",
+  });
+}
+
+
+
+async getText(shortCode: string) {
+  const response = await this.request<any>(
+    `/text/${shortCode}`
+  );
+
+  return response.data.text;
+}
+
+async getExpiredTexts(
+  page = 1,
+  limit = 5
+) {
+  const response = await this.request<any>(
+    `/text/expired?page=${page}&limit=${limit}`
+  );
+
+  return {
+    texts: response.data.texts.map((text: any) => ({
+      id: text._id,
+      content: text.content,
+      shortCode: text.shortCode,
+      shareUrl: `${window.location.origin}/text/${text.shortCode}`,
+      createdAt: text.createdAt,
+      expiresAt: text.expiresAt,
+    })),
+
+    currentPage: response.currentPage,
+    totalPages: response.totalPages,
+    totalTexts: response.totalTexts,
+  };
+}
+
+
+
+async restoreText(id: string, expiry: string) {
+  const response = await this.request<any>(`/text/restore/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ expiry }),
+  });
+
+  return response.data.text;
+}
+
 async signup(data: {
   name: string;
   email: string;
@@ -379,4 +497,10 @@ async logout() {
 
 
 export const apiService = new ApiService()
-export type { ShortenedUrl, AnalyticsData,DashboardStats }
+export type { 
+      ShortenedUrl,
+      AnalyticsData,
+      DashboardStats,
+      SharedText,
+      PaginatedTexts
+   }

@@ -13,6 +13,7 @@ const globalErrorHandler = require("./controller/errorController");
 const authRoute = require("./routes/authRoute");
 const userRoute = require("./routes/userRoute");
 const urlRoute = require("./routes/urlRoute");
+const textRouter = require("./routes/textRoute");
 const urlController = require("./controller/urlController");
 
 const app = express();
@@ -60,7 +61,7 @@ if (process.env.NODE_ENV === "development") {
 app.use("/users", userRoute);
 app.use("/auth", authRoute);
 app.use("/url", urlRoute);
-
+app.use("/text", textRouter);
 app.get("/:shortCode", urlController.redirectUrl);
 
 app.get("/", (req, res) => {

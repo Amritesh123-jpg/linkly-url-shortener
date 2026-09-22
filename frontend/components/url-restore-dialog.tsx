@@ -11,33 +11,33 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-interface RestoreDialogProps {
+interface UrlRestoreDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (expiry: string) => void;
+  onConfirm: (duration: number) => void;
   isLoading?: boolean;
 }
 
-export function RestoreDialog({
+export function UrlRestoreDialog({
   open,
   onOpenChange,
   onConfirm,
   isLoading = false,
-}: RestoreDialogProps) {
-  const [expiry, setExpiry] = useState("30d");
+}: UrlRestoreDialogProps) {
+  const [duration, setDuration] = useState(30);
 
   const handleRestore = () => {
-    onConfirm(expiry);
+    onConfirm(duration);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Restore Text</DialogTitle>
+          <DialogTitle>Restore URL</DialogTitle>
 
           <DialogDescription>
-            Choose how long this text should remain active after restoration.
+            Choose how long this URL should remain active after restoration.
           </DialogDescription>
         </DialogHeader>
 
@@ -47,19 +47,15 @@ export function RestoreDialog({
           </label>
 
           <select
-            value={expiry}
-            onChange={(e) => setExpiry(e.target.value)}
+            value={duration}
+            onChange={(e) => setDuration(Number(e.target.value))}
             disabled={isLoading}
             className="w-full cursor-pointer rounded-lg border bg-background px-3 py-2 text-sm outline-none"
           >
-            <option value="5m">5 Minutes</option>
-            <option value="10m">10 Minutes</option>
-            <option value="30m">30 Minutes</option>
-            <option value="1h">1 Hour</option>
-            <option value="1d">1 Day</option>
-            <option value="7d">7 Days</option>
-            <option value="30d">30 Days</option>
-            <option value="never">Never</option>
+            <option value={1}>1 Day</option>
+            <option value={7}>7 Days</option>
+            <option value={30}>30 Days</option>
+            <option value={-1}>Never</option>
           </select>
         </div>
 

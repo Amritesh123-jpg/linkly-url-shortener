@@ -5,8 +5,12 @@ const ogs = require("open-graph-scraper");
 const Url = require("../model/urlModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const calculateExpiry = require('../utils/expiry');
 const QRCode = require("qrcode");
-
+const {
+  getPagination,
+  getTotalPages,
+} = require("../utils/pagination");
 // Create Short URL
 exports.createShortUrl = catchAsync(async (req, res, next) => {
   
@@ -88,37 +92,8 @@ exports.createShortUrl = catchAsync(async (req, res, next) => {
     } while (await Url.findOne({ shortCode }));
   }
 
-  // Expire after 2 minutes
-  let expiresAt;
-
-  switch (expiry) {
-    case "5m":
-      expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-      break;
-    case "10m":
-      expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-      break;  
-    case "30m":
-      expiresAt = new Date(Date.now() + 30 * 60 * 1000);
-      break;
-    case "1h":
-      expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-      break;
-    case "1d":
-      expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      break;
-    case "7d":
-      expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      break;
-    case "30d":
-      expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      break;  
-    case "never":
-      expiresAt = null;
-      break;  
-    default:
-      return next(new AppError("Invalid expiry time. Use 5m, 10m, 30m, 1h, 1d,7d,30d or never", 400));
-  }   
+  // Calculate Expire 
+    const expiresAt = calculateExpiry(expiry);
 
     let title = "";
     let favicon = "";
@@ -252,9 +227,14 @@ exports.getAllUrls = catchAsync(async (req, res, next) => {
   } = req.query;
 
   const filter = {
-    user: req.user.id,
-    isDeleted: false
-  };
+  user: req.user.id,
+};
+
+if (status === "deleted") {
+  filter.isDeleted = true;
+} else {
+  filter.isDeleted = false;
+}
   
   const {tag} = req.query;
 
@@ -303,10 +283,11 @@ if (status === "expired") {
   filter.expiresAt = { $lte: new Date() };
 }
   
-const pageNumber = Number(page);
-const limitNumber = Number(limit);
-
-const skip = (pageNumber - 1) * limitNumber;
+const {
+  page: pageNumber,
+  limit: limitNumber,
+  skip,
+} = getPagination(page, limit);
 
 const urls = await Url.find(filter)
   .sort(sort)
@@ -315,16 +296,23 @@ const urls = await Url.find(filter)
 
 const totalUrls = await Url.countDocuments(filter);
 
+const totalPages = getTotalPages(
+  totalUrls,
+  limitNumber
+);
+
 res.status(200).json({
   status: "success",
   results: urls.length,
   totalResults: totalUrls,
   currentPage: pageNumber,
-  totalPages: Math.ceil(totalUrls / limitNumber),
+  totalPages,
   data: {
     urls,
   },
 });
+
+
 });
 
 // Delete URL
@@ -654,73 +642,66 @@ exports.deleteManyUrls = catchAsync(async (req, res, next) => {
 });
 
 exports.restoreUrl = catchAsync(async (req, res, next) => {
-  const {duration} = req.body;
-  const {id} = req.params;
+  const { duration } = req.body;
+  const { id } = req.params;
 
-  const url =await Url.findById({
-  _id: id,
-  user: req.user.id,
-  isDeleted: false,
+  // Find URL owned by current user
+  const url = await Url.findOne({
+    _id: id,
+    user: req.user.id,
   });
 
-  if(!url){
+  if (!url) {
     return next(new AppError("URL not found", 404));
   }
 
-    if (url.isDeleted) {
-    return next(
-      new AppError(
-        "This URL is in trash. Restore it before renewing expiry.",
-        400
-      )
-    );
-  }
-
-  
-
-  if (url.user.toString() !== req.user.id) {
-    return next(
-      new AppError("You are not allowed to restore this URL", 403)
-    );
-  }
-
-  if(!url.expiresAt || url.expiresAt > new Date()){
-    return next(
-      new AppError("This URL is not expired and cannot be restored", 400)
-    );
-  }
-
-  const allowedDurations = [1, 7, 30, -1];
-
-if (!allowedDurations.includes(duration)) {
+  if (!url.expiresAt || url.expiresAt > new Date()) {
   return next(
     new AppError(
-      "Duration must be 1, 7, 30 days or -1 (Never Expire)",
+      "This URL is not expired and cannot be restored",
       400
     )
   );
 }
 
-  if(duration === -1){
-    url.expiresAt = null;
-  }else{
-    url.expiresAt = new Date(
-    Date.now()+ duration*24*60*60*1000
+  // Validate restore duration
+  const allowedDurations = [1, 7, 30, -1];
+
+  if (!allowedDurations.includes(duration)) {
+    return next(
+      new AppError(
+        "Duration must be 1, 7, 30 days or -1 (Never Expire)",
+        400
+      )
     );
   }
 
-  
+  // Restore URL
+  url.isDeleted = false;
+  url.deletedAt = null;
+
+  // Set new expiry
+  if (duration === -1) {
+    url.expiresAt = null;
+  } else {
+    url.expiresAt = new Date(
+      Date.now() + duration * 24 * 60 * 60 * 1000
+    );
+  }
+
   await url.save();
+
+  // Update caches
   await updateDashboardCache(req.user.id);
   await updateAnalyticsCache(req.user.id);
-// console.log("Restored URL:");
-// console.log(url);
 
   res.status(200).json({
     status: "success",
     message: "URL restored successfully",
-  }); 
-
+    data: {
+      url,
+    },
+  });
 });
 
 exports.generateQRCode = catchAsync(async (req, res, next) => {
